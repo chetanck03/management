@@ -10,6 +10,7 @@ const migrate = async () => {
         full_name VARCHAR(100) NOT NULL,
         email VARCHAR(150) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(20) DEFAULT 'student',
         roll_no VARCHAR(30),
         semester VARCHAR(30),
         branch VARCHAR(100),
@@ -19,6 +20,12 @@ const migrate = async () => {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+
+      -- Add role column if not exists (for existing tables)
+      DO $$ BEGIN
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'student';
+      EXCEPTION WHEN duplicate_column THEN NULL;
+      END $$;
 
       -- Subjects table
       CREATE TABLE IF NOT EXISTS subjects (

@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
     }
 
     const result = await pool.query(
-      'SELECT id, full_name, email, password_hash, roll_no, semester, branch, college, cgpa, streak FROM users WHERE email = $1',
+      'SELECT id, full_name, email, password_hash, role, roll_no, semester, branch, college, cgpa, streak FROM users WHERE email = $1',
       [email]
     );
 
@@ -100,7 +100,7 @@ router.get('/me', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const result = await pool.query(
-      'SELECT id, full_name, email, roll_no, semester, branch, college, cgpa, streak FROM users WHERE id = $1',
+      'SELECT id, full_name, email, role, roll_no, semester, branch, college, cgpa, streak FROM users WHERE id = $1',
       [decoded.userId]
     );
 

@@ -9,6 +9,7 @@ import attendanceRoutes from './routes/attendance.js';
 import aiRoutes from './routes/ai.js';
 import goalRoutes from './routes/goals.js';
 import activityRoutes from './routes/activity.js';
+import adminRoutes from './routes/admin.js';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
