@@ -3,8 +3,8 @@ export const aiSubjects = [
     id: 'ds',
     name: 'Data Structures',
     code: 'CS301',
-    icon: '🌳',
-    color: '#6366f1',
+    iconId: 'ds',
+    color: '#4f46e5',
     description: 'Arrays, Linked Lists, Trees, Graphs, Hashing',
     suggestedQuestions: [
       'Explain the difference between a stack and a queue',
@@ -18,8 +18,8 @@ export const aiSubjects = [
     id: 'algo',
     name: 'Algorithms',
     code: 'CS302',
-    icon: '⚡',
-    color: '#8b5cf6',
+    iconId: 'algo',
+    color: '#7c3aed',
     description: 'Sorting, Searching, Dynamic Programming, Greedy',
     suggestedQuestions: [
       'Explain dynamic programming with an example',
@@ -33,8 +33,8 @@ export const aiSubjects = [
     id: 'dbms',
     name: 'Database Management Systems',
     code: 'CS303',
-    icon: '🗄️',
-    color: '#06b6d4',
+    iconId: 'dbms',
+    color: '#0891b2',
     description: 'SQL, Normalization, Transactions, Indexing',
     suggestedQuestions: [
       'Explain the different normal forms in DBMS',
@@ -48,8 +48,8 @@ export const aiSubjects = [
     id: 'se',
     name: 'Software Engineering',
     code: 'CS304',
-    icon: '🏗️',
-    color: '#10b981',
+    iconId: 'se',
+    color: '#059669',
     description: 'SDLC, Agile, Design Patterns, Testing',
     suggestedQuestions: [
       'Explain the Agile methodology',
@@ -63,8 +63,8 @@ export const aiSubjects = [
     id: 'cn',
     name: 'Computer Networks',
     code: 'CS305',
-    icon: '🌐',
-    color: '#f59e0b',
+    iconId: 'cn',
+    color: '#d97706',
     description: 'OSI Model, TCP/IP, Routing, Security',
     suggestedQuestions: [
       'Explain the OSI model layers',
@@ -78,8 +78,8 @@ export const aiSubjects = [
     id: 'toc',
     name: 'Theory of Computation',
     code: 'CS306',
-    icon: '🧮',
-    color: '#ef4444',
+    iconId: 'toc',
+    color: '#dc2626',
     description: 'Automata, Grammars, Turing Machines, Complexity',
     suggestedQuestions: [
       'Explain the difference between DFA and NFA',
@@ -195,17 +195,17 @@ Normalization is the process of organizing data to reduce **redundancy** and imp
 
 ### BCNF (Boyce-Codd Normal Form):
 - Must be in 3NF
-- For every functional dependency X → Y, X must be a **super key**
+- For every functional dependency X -> Y, X must be a **super key**
 
 ### Example:
 \`\`\`
 Student(Roll_No, Name, Course, Department, HOD)
 
-FDs: Roll_No → Name, Course
-     Course → Department
-     Department → HOD
+FDs: Roll_No -> Name, Course
+     Course -> Department
+     Department -> HOD
 
-// Transitive: Roll_No → Course → Department → HOD
+// Transitive: Roll_No -> Course -> Department -> HOD
 // Not in 3NF!
 
 // Decompose:
@@ -224,18 +224,15 @@ Dept_HOD(Department, HOD)
   },
 };
 
-// Generic AI response generator for questions not in the pre-built responses
 export function generateAIResponse(subject, question) {
   const subjectData = aiSubjects.find(s => s.id === subject);
   if (!subjectData) return "I couldn't find that subject. Please try again.";
 
-  // Check if we have a pre-built response
   const subjectResponses = aiResponses[subject];
   if (subjectResponses && subjectResponses[question]) {
     return subjectResponses[question];
   }
 
-  // Generate a contextual response
   return `## ${subjectData.name} - AI Tutor Response
 
 Great question! Let me help you understand this concept.

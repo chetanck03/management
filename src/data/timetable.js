@@ -42,12 +42,12 @@ export const timetableData = {
 };
 
 export const subjects = [
-  { id: 'cs301', name: 'Data Structures', code: 'CS301', faculty: 'Dr. Sharma', color: '#6366f1', attendance: 85 },
-  { id: 'cs302', name: 'Algorithms', code: 'CS302', faculty: 'Prof. Gupta', color: '#8b5cf6', attendance: 78 },
-  { id: 'cs303', name: 'Database Management Systems', code: 'CS303', faculty: 'Dr. Patel', color: '#06b6d4', attendance: 92 },
-  { id: 'cs304', name: 'Software Engineering', code: 'CS304', faculty: 'Prof. Singh', color: '#10b981', attendance: 88 },
-  { id: 'cs305', name: 'Computer Networks', code: 'CS305', faculty: 'Dr. Kumar', color: '#f59e0b', attendance: 72 },
-  { id: 'cs306', name: 'Theory of Computation', code: 'CS306', faculty: 'Dr. Verma', color: '#ef4444', attendance: 80 },
+  { id: 'cs301', name: 'Data Structures', code: 'CS301', faculty: 'Dr. Sharma', color: '#4f46e5', attendance: 85 },
+  { id: 'cs302', name: 'Algorithms', code: 'CS302', faculty: 'Prof. Gupta', color: '#7c3aed', attendance: 78 },
+  { id: 'cs303', name: 'Database Management Systems', code: 'CS303', faculty: 'Dr. Patel', color: '#0891b2', attendance: 92 },
+  { id: 'cs304', name: 'Software Engineering', code: 'CS304', faculty: 'Prof. Singh', color: '#059669', attendance: 88 },
+  { id: 'cs305', name: 'Computer Networks', code: 'CS305', faculty: 'Dr. Kumar', color: '#d97706', attendance: 72 },
+  { id: 'cs306', name: 'Theory of Computation', code: 'CS306', faculty: 'Dr. Verma', color: '#dc2626', attendance: 80 },
 ];
 
 export const studentProfile = {
@@ -64,11 +64,11 @@ export const studentProfile = {
 };
 
 export const recentActivity = [
-  { id: 1, type: 'attendance', message: 'Marked present in Data Structures', time: '2 hours ago', icon: '✅' },
-  { id: 2, type: 'ai', message: 'Asked AI Tutor about Binary Trees', time: '3 hours ago', icon: '🤖' },
-  { id: 3, type: 'streak', message: 'Study streak extended to 12 days!', time: '5 hours ago', icon: '🔥' },
-  { id: 4, type: 'goal', message: 'Completed: Review DBMS normalization', time: '1 day ago', icon: '🎯' },
-  { id: 5, type: 'attendance', message: 'Marked present in Algorithms', time: '1 day ago', icon: '✅' },
+  { id: 1, type: 'attendance', message: 'Marked present in Data Structures', time: '2 hours ago' },
+  { id: 2, type: 'ai', message: 'Asked AI Tutor about Binary Trees', time: '3 hours ago' },
+  { id: 3, type: 'streak', message: 'Study streak extended to 12 days', time: '5 hours ago' },
+  { id: 4, type: 'goal', message: 'Completed: Review DBMS normalization', time: '1 day ago' },
+  { id: 5, type: 'attendance', message: 'Marked present in Algorithms', time: '1 day ago' },
 ];
 
 export const notifications = [
