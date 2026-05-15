@@ -1,19 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HiOutlineCalendar, HiOutlineClock } from 'react-icons/hi';
 import ClassCard from '../components/Dashboard/ClassCard';
-import { timetableData } from '../data/timetable';
+import { timetableAPI } from '../services/api';
 import { getCurrentDay } from '../utils/timeUtils';
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function Schedule() {
   const [selectedDay, setSelectedDay] = useState(getCurrentDay() === 'Sunday' ? 'Monday' : getCurrentDay());
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const classes = timetableData[selectedDay] || [];
+  useEffect(() => {
+    loadClasses();
+  }, [selectedDay]);
+
+  const loadClasses = async () => {
+    setLoading(true);
+    try {
+      const res = await timetableAPI.getAll(selectedDay);
+      setClasses(res.timetable || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-4 lg:p-6 space-y-6 animate-fade-in">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
           <HiOutlineCalendar className="w-6 h-6 text-indigo-600" />
@@ -45,20 +60,30 @@ export default function Schedule() {
       {/* Classes */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-slate-800">
-            {selectedDay}'s Classes
-          </h2>
+          <h2 className="text-[15px] font-semibold text-slate-800">{selectedDay}'s Classes</h2>
           <span className="text-[12px] text-slate-400 flex items-center gap-1 font-medium">
             <HiOutlineClock className="w-3.5 h-3.5" />
             {classes.length} classes
           </span>
         </div>
 
-        {classes.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : classes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {classes.map((cls, index) => (
               <div key={cls.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.08}s` }}>
-                <ClassCard classItem={cls} />
+                <ClassCard classItem={{
+                  subject: cls.subject_name,
+                  code: cls.subject_code,
+                  faculty: cls.faculty,
+                  room: cls.room,
+                  start: cls.start_time?.slice(0,5),
+                  end: cls.end_time?.slice(0,5),
+                  type: cls.type,
+                }} />
               </div>
             ))}
           </div>
@@ -86,9 +111,6 @@ export default function Schedule() {
           <span className="w-2.5 h-2.5 rounded-full bg-violet-500" />
           <span className="text-[12px] text-slate-500">Tutorial</span>
         </div>
-        <span className="text-[12px] text-slate-400 ml-auto">
-          Status: <span className="text-slate-500">Done</span> · <span className="text-indigo-500">Live</span> · <span className="text-amber-500">Upcoming</span>
-        </span>
       </div>
     </div>
   );

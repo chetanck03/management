@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HiOutlineMenuAlt2, HiOutlineSearch, HiOutlineBell, HiOutlineX } from 'react-icons/hi';
-import { notifications } from '../../data/timetable';
+import { activityAPI } from '../../services/api';
 
 export default function Header({ onMenuClick }) {
+  const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+
+  useEffect(() => {
+    activityAPI.getNotifications()
+      .then(res => setNotifications(res.notifications || []))
+      .catch(() => {});
+  }, []);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (

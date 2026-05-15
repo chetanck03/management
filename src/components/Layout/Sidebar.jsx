@@ -9,7 +9,7 @@ import {
 } from 'react-icons/hi';
 import { RiRobot2Line } from 'react-icons/ri';
 import { BsLightningCharge } from 'react-icons/bs';
-import { studentProfile } from '../../data/timetable';
+import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { path: '/', icon: HiOutlineViewGrid, label: 'Dashboard' },
@@ -20,6 +20,7 @@ const navItems = [
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
+  const { user } = useAuth();
   return (
     <>
       {isOpen && (
@@ -59,11 +60,11 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-50 border border-slate-100">
             <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold text-sm">
-              {studentProfile.name[0]}
+              {user?.full_name?.[0] || 'U'}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-sm text-slate-800 truncate">{studentProfile.fullName}</p>
-              <p className="text-[11px] text-slate-400">{studentProfile.semester}</p>
+              <p className="font-semibold text-sm text-slate-800 truncate">{user?.full_name || 'Student'}</p>
+              <p className="text-[11px] text-slate-400">{user?.semester || 'Student'}</p>
             </div>
           </div>
         </div>

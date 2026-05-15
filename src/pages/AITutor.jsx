@@ -2,17 +2,26 @@ import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { HiOutlineArrowLeft, HiOutlineChatAlt2 } from 'react-icons/hi';
 import { RiRobot2Line, RiSendPlaneFill } from 'react-icons/ri';
-import { BsLightningCharge, BsCpu, BsHddNetwork, BsGlobe, BsGear, BsBraces } from 'react-icons/bs';
+import { BsLightningCharge, BsCpu, BsGlobe, BsGear, BsBraces } from 'react-icons/bs';
 import { FiDatabase } from 'react-icons/fi';
-import { aiSubjects, generateAIResponse } from '../data/aiTutorData';
+import { subjectsAPI, aiAPI } from '../services/api';
 
-const subjectIcons = {
-  ds: BsBraces,
-  algo: BsLightningCharge,
-  dbms: FiDatabase,
-  se: BsGear,
-  cn: BsGlobe,
-  toc: BsCpu,
+const subjectIconMap = {
+  'Data Structures': BsBraces,
+  'Algorithms': BsLightningCharge,
+  'Database Management Systems': FiDatabase,
+  'Software Engineering': BsGear,
+  'Computer Networks': BsGlobe,
+  'Theory of Computation': BsCpu,
+};
+
+const suggestedQuestionsMap = {
+  'Data Structures': ['Explain the difference between a stack and a queue', 'How does a binary search tree work?', 'What is hashing?'],
+  'Algorithms': ['Explain dynamic programming with an example', 'What is the difference between BFS and DFS?', 'How does Dijkstra\'s algorithm work?'],
+  'Database Management Systems': ['Explain the different normal forms', 'What is ACID property?', 'Explain joins with examples'],
+  'Software Engineering': ['Explain the Agile methodology', 'What are SOLID principles?', 'What is test-driven development?'],
+  'Computer Networks': ['Explain the OSI model layers', 'Difference between TCP and UDP', 'How does DNS resolution work?'],
+  'Theory of Computation': ['Explain the difference between DFA and NFA', 'What is a context-free grammar?', 'What is the halting problem?'],
 };
 
 function TypingIndicator() {
@@ -28,7 +37,7 @@ function TypingIndicator() {
 function ChatMessage({ message, isUser }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-      <div className={`max-w-[85%] lg:max-w-[70%]`}>
+      <div className="max-w-[85%] lg:max-w-[70%]">
         {!isUser && (
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
@@ -59,31 +68,69 @@ function ChatMessage({ message, isUser }) {
 }
 
 export default function AITutor() {
+  const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(true);
   const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    loadSubjects();
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSelectSubject = (subject) => {
+  const loadSubjects = async () => {
+    try {
+      const res = await subjectsAPI.getAll();
+      setSubjects(res.subjects || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectSubject = async (subject) => {
     setSelectedSubject(subject);
-    setMessages([{
-      id: 1,
-      content: `Hello! I'm your **${subject.name}** AI Tutor.\n\nI can help you with topics like ${subject.description}.\n\nFeel free to ask me anything, or pick one of the suggested questions below to get started.`,
-      isUser: false,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    }]);
+    
+    // Load chat history
+    try {
+      const res = await aiAPI.getHistory(subject.id);
+      if (res.messages && res.messages.length > 0) {
+        setMessages(res.messages.map(m => ({
+          id: m.id,
+          content: m.message,
+          isUser: m.role === 'user',
+          time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        })));
+      } else {
+        setMessages([{
+          id: 'welcome',
+          content: `Hello! I'm your **${subject.name}** AI Tutor.\n\nI can help you understand concepts, solve doubts, and explain code. Ask me anything about ${subject.name}.`,
+          isUser: false,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }]);
+      }
+    } catch (err) {
+      setMessages([{
+        id: 'welcome',
+        content: `Hello! I'm your **${subject.name}** AI Tutor. Ask me anything.`,
+        isUser: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }]);
+    }
   };
 
   const handleSend = async (text = input) => {
-    if (!text.trim()) return;
+    if (!text.trim() || isTyping) return;
 
     const userMessage = {
-      id: messages.length + 1,
+      id: Date.now(),
       content: text,
       isUser: true,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -93,17 +140,24 @@ export default function AITutor() {
     setInput('');
     setIsTyping(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 800));
-
-    const response = generateAIResponse(selectedSubject.id, text);
-
-    setIsTyping(false);
-    setMessages(prev => [...prev, {
-      id: prev.length + 1,
-      content: response,
-      isUser: false,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    }]);
+    try {
+      const res = await aiAPI.chat({ subjectId: selectedSubject.id, message: text });
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        content: res.response,
+        isUser: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }]);
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        content: `Sorry, I couldn't process that request. ${err.message}`,
+        isUser: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -113,8 +167,16 @@ export default function AITutor() {
     }
   };
 
-  // Subject Selection Screen
+  // Subject Selection
   if (!selectedSubject) {
+    if (loading) {
+      return (
+        <div className="p-6 flex items-center justify-center h-64">
+          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+
     return (
       <div className="p-4 lg:p-6 space-y-6 animate-fade-in">
         <div>
@@ -126,8 +188,8 @@ export default function AITutor() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {aiSubjects.map((subject, index) => {
-            const IconComp = subjectIcons[subject.id];
+          {subjects.map((subject, index) => {
+            const IconComp = subjectIconMap[subject.name] || BsLightningCharge;
             return (
               <button
                 key={subject.id}
@@ -136,7 +198,7 @@ export default function AITutor() {
                 style={{ animationDelay: `${index * 0.08}s` }}
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${subject.color}12` }}>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${subject.color}15` }}>
                     <IconComp className="w-5 h-5" style={{ color: subject.color }} />
                   </div>
                   <div>
@@ -146,7 +208,7 @@ export default function AITutor() {
                     <p className="text-[11px] text-slate-400">{subject.code}</p>
                   </div>
                 </div>
-                <p className="text-[12px] text-slate-500 mb-3 leading-relaxed">{subject.description}</p>
+                <p className="text-[12px] text-slate-500 mb-3">{subject.faculty}</p>
                 <div className="flex items-center gap-1.5 text-indigo-500 text-[12px] font-medium">
                   <HiOutlineChatAlt2 className="w-3.5 h-3.5" />
                   <span>Start Chat</span>
@@ -160,18 +222,18 @@ export default function AITutor() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100">
             <BsLightningCharge className="w-5 h-5 text-indigo-600 mb-2" />
-            <h4 className="font-semibold text-slate-800 text-[13px]">Smart Responses</h4>
-            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">Detailed explanations with code examples and tables</p>
+            <h4 className="font-semibold text-slate-800 text-[13px]">Powered by Gemini</h4>
+            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">Advanced AI for detailed explanations with code examples</p>
           </div>
           <div className="p-4 rounded-xl bg-violet-50 border border-violet-100">
             <RiRobot2Line className="w-5 h-5 text-violet-600 mb-2" />
             <h4 className="font-semibold text-slate-800 text-[13px]">Subject Expert</h4>
-            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">Each tutor specializes in its subject for accurate answers</p>
+            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">Context-aware tutor that remembers your conversation</p>
           </div>
           <div className="p-4 rounded-xl bg-rose-50 border border-rose-100">
             <HiOutlineChatAlt2 className="w-5 h-5 text-rose-600 mb-2" />
-            <h4 className="font-semibold text-slate-800 text-[13px]">Interactive Chat</h4>
-            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">Natural conversation with markdown and code support</p>
+            <h4 className="font-semibold text-slate-800 text-[13px]">Chat History</h4>
+            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">Your conversations are saved for future reference</p>
           </div>
         </div>
       </div>
@@ -179,11 +241,12 @@ export default function AITutor() {
   }
 
   // Chat Interface
-  const SubjectIcon = subjectIcons[selectedSubject.id];
+  const SubjectIcon = subjectIconMap[selectedSubject.name] || BsLightningCharge;
+  const suggested = suggestedQuestionsMap[selectedSubject.name] || [];
 
   return (
     <div className="flex flex-col h-full">
-      {/* Chat Header */}
+      {/* Header */}
       <div className="px-4 lg:px-6 py-3.5 border-b border-slate-100 bg-white">
         <div className="flex items-center gap-3">
           <button 
@@ -193,7 +256,7 @@ export default function AITutor() {
             <HiOutlineArrowLeft className="w-4 h-4 text-slate-500" />
           </button>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${selectedSubject.color}12` }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${selectedSubject.color}15` }}>
               <SubjectIcon className="w-4 h-4" style={{ color: selectedSubject.color }} />
             </div>
             <div>
@@ -227,11 +290,11 @@ export default function AITutor() {
       </div>
 
       {/* Suggested Questions */}
-      {messages.length <= 1 && (
+      {messages.length <= 1 && suggested.length > 0 && (
         <div className="px-4 lg:px-6 pb-2 bg-white border-t border-slate-100 pt-3">
           <p className="text-[11px] text-slate-400 mb-2 font-medium">Suggested questions:</p>
           <div className="flex flex-wrap gap-2">
-            {selectedSubject.suggestedQuestions.slice(0, 3).map((q, i) => (
+            {suggested.map((q, i) => (
               <button
                 key={i}
                 onClick={() => handleSend(q)}
@@ -255,6 +318,7 @@ export default function AITutor() {
               onKeyDown={handleKeyDown}
               placeholder={`Ask about ${selectedSubject.name}...`}
               className="flex-1 bg-transparent text-[13px] text-slate-700 placeholder-slate-400 outline-none"
+              disabled={isTyping}
             />
           </div>
           <button
